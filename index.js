@@ -124,7 +124,10 @@ function river(){
 }
   
 function shuffle(){
-  delay(send('shuffle', '', '', ''), 1000);
+  list = [];
+  list[0] = 'shuffle';
+  delay(send(list), 1000);
+//  delay(send('shuffle', '', '', ''), 1000);
   reset();
 }
 
