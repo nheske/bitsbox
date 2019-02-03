@@ -123,8 +123,21 @@ function river(){
 //  delay(send('river', card5, '', ''), 1000);
   renderRiver(card5);
 }
-  
+ 
+
+function shuffleDeck(array) {
+  var i = 0, j = 0, temp = null
+
+  for (i = array.length - 1; i > 0; i -= 1) {
+    j = Math.floor(Math.random() * (i + 1))
+    temp = array[i]
+    array[i] = array[j]
+    array[j] = temp
+  }
+}
+
 function shuffle(){
+  shuffleDeck(deck);
   list = [];
   list[0] = 'shuffle';
   delay(send(list), 1000);
@@ -141,7 +154,7 @@ function reset(){
   c3.change(cardBack);
   c4.change(cardBack);
   c5.change(cardBack);
-  createDeck();
+  //createDeck();
 }
 
 function createDeck(){
@@ -182,6 +195,6 @@ function board(){
   c4 = stamp(cardBack,550,flopy,cardHeight);
   c5 = stamp(cardBack,700,flopy,cardHeight);
   f = text('flop',75,flopy+200,50);
-  reset();
+  createDeck();
 }
 
