@@ -44,11 +44,22 @@ function flop(){
   cards = [card1,card2,card3]
   debug.change('flop a='+card1+' b='+card2+' c='+card3);
 //  send('flop', cards);
-  send('flop', card1, card2, card3);
+  list = [];
+  list[0] = 'flop'
+  list[1] = card1;
+  list[2] = card2;
+  list[3] = card3;
+  send(list);
+//  send('flop', card1, card2, card3);
   renderFlop(card1, card2, card3);
 }
 
-function get(action, card1, card2, card3) {
+//function get(action, card1, card2, card3) {
+function get(list) {
+  action = list[0];
+  card1 = list[1];
+  card2 = list[2];
+  card3 = list[3];
   console.log('in get '+action+' id='+id+' card1='+card1+' card2='+card2+' card3='+card3)
   debug.change('in get '+action+' id='+id+' card1='+card1+' card2='+card2+' card3='+card3)
  
@@ -94,14 +105,22 @@ function renderRiver(a){
 
 function turn(){
   card4 = getCard();
-  delay(send('turn', card4, '', ''), 1000);
+  list = [];
+  list[0] = 'turn';
+  list[1] = card4;
+  delay(send(list), 1000);
+//  delay(send('turn', card4, '', ''), 1000);
   renderTurn(card4);
 }
 
 function river(){
-  x = getCard();
-  delay(send('river', x, '', ''), 1000);
-  renderRiver(x);
+  card5 = getCard();
+  list = [];
+  list[0] = 'river';
+  list[1] = card5;
+  delay(send(list), 1000);
+//  delay(send('river', card5, '', ''), 1000);
+  renderRiver(card5);
 }
   
 function shuffle(){
@@ -117,6 +136,10 @@ function reset(){
   c3.change(cardBack);
   c4.change(cardBack);
   c5.change(cardBack);
+  createDeck();
+}
+
+function createDeck(){
   rank[0] = '2';
   rank[1] = '3';
   rank[2] = '4';
@@ -136,12 +159,11 @@ function reset(){
   suit[3] = 'c';
   deck = [];
   for (i = 0; i < 13; i++) {
-		for (j = 0; j < 4; j++) {
-			//stamp('card'+rank[1]+suit[3])
-			someCard = 'card'+rank[i]+suit[j]
-      		deck.push(someCard)
-		}
+    for (j = 0; j < 4; j++) {
+      someCard = 'card'+rank[i]+suit[j]
+      deck.push(someCard)
 	}
+  }
 }
 
 function board(){
