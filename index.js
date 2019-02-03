@@ -3,25 +3,25 @@ suit = [];
 rank = [];
 
 debug = text('debug',100,900)
-norm = text('norm',100,1000)
-sam = text('sam',500,1000)
+pOne = text('player1',100,1000,50)
+pTwo = text('player2',500,1000,50)
 var id='';
-norm.tap = playerOne;
-sam.tap = playerTwo;
+pOne.tap = playerOne;
+pTwo.tap = playerTwo;
 board();
 reset();
 //var id = window.navigator.userAgent.replace(/\D+/g, '').substring(0,3);
 debug.change(id);
 
 function playerOne(){
-  sam.hide(); 
-  id= 'norm';
+  pTwo.hide(); 
+  id= 'player1';
   send(id,'joined');
 }
 
 function playerTwo(){
-  norm.hide(); 
-  id='sam';
+  pOne.hide(); 
+  id='player2';
   send(id,'joined');
 }
 
@@ -41,7 +41,9 @@ function flop(){
   card1 = getCard();
   card2 = getCard();
   card3 = getCard();
+  cards = [card1,card2,card3]
   debug.change('flop a='+card1+' b='+card2+' c='+card3);
+//  send('flop', cards);
   send('flop', card1, card2, card3);
   renderFlop(card1, card2, card3);
 }
@@ -143,7 +145,7 @@ function reset(){
 }
 
 function board(){
-  fill('tablecloth');
+  fill('white');
   flopy = 200;
   cardHeight = 200;
   cardBack = 'cube';
