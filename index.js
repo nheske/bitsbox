@@ -1,7 +1,7 @@
 deck = [];
 suit = [];
 rank = [];
-
+nextCard = 0;
 debug = text('debug',100,900)
 pOne = text('player1',100,1000,50)
 pTwo = text('player2',500,1000,50)
@@ -27,13 +27,14 @@ function playerTwo(){
 
 function getCard(){
   //var randomnumber = Math.floor(Math.random()*deck.length);
-  var randomnumber = random(deck.length);
-  var someCard = deck[randomnumber];
+  //var randomnumber = random(deck.length);
+  //var someCard = deck[randomnumber];
+  var someCard = deck[nextCard];
+  nextCard = nextCard + 1;
   console.log('removing '+someCard)
-  deck[randomnumber] = deck[deck.length-1]
-  deck.pop();
+  //deck[randomnumber] = deck[deck.length-1]
+  //deck.pop();
   console.log('getCard='+someCard);
-  console.log('size='+deck.length);
   return someCard
 }
 
@@ -132,6 +133,7 @@ function shuffle(){
 }
 
 function reset(){
+  nextCard = 0;
   f.change('flop');
   f.tap = flop;
   c1.change(cardBack);
@@ -180,5 +182,6 @@ function board(){
   c4 = stamp(cardBack,550,flopy,cardHeight);
   c5 = stamp(cardBack,700,flopy,cardHeight);
   f = text('flop',75,flopy+200,50);
+  reset();
 }
 
