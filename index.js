@@ -1,29 +1,82 @@
 deck = [];
 suit = [];
 rank = [];
+players = [];
 nextCard = 0;
+isTableCheck = false;
+var lastPingRequestTime;
 debug = text('debug',100,900)
-pOne = text('player1',100,1000,50)
-pTwo = text('player2',500,1000,50)
-var id='';
-pOne.tap = playerOne;
-pTwo.tap = playerTwo;
+playersLabel = text('',100,1000,50)
+var id=Date.now().toString().substring(9,12);
+players[0] = id;
+updatePlayersLabel();
 board();
 reset();
 //var id = window.navigator.userAgent.replace(/\D+/g, '').substring(0,3);
 debug.change(id);
 
-function playerOne(){
-  pTwo.hide(); 
-  id= 'player1';
-  send(id,'joined');
+function preflop(){
+  for (i = 0; i < players.length; i++) {
+    someId = players[i];
+    card1 = getCard();
+  	card2 = getCard();
+    list = [];
+    list[0] = 'deal'
+    list[1] = card1;
+    list[2] = card2;
+    console.log('dealing '+card1+','+card2);
+    if(someId == id){
+      console.log('my cards');
+	  renderDeal(card1, card2);
+    } else{
+      send(list);
+    }
+  }
+  f.change('flop');
+  f.tap = flop;
 }
 
-function playerTwo(){
-  pOne.hide(); 
-  id='player2';
-  send(id,'joined');
+function renderDeal(){
+      c6.change(card1);
+      c7.change(card2);
 }
+
+function updatePlayersLabel(){
+  label = 'players: '
+  for (i = 0; i < players.length; i++) {
+    label += ' '+players[i];
+  }
+  playersLabel.change(label);
+}
+
+function endTableCheck(){
+  isTableCheck = false;
+}
+
+function tableCheck() {
+  isTableCheck = false;
+  players = [];
+  players.push(id);
+  lastPingRequestTime = Math.floor(Date.now() / 1000)
+  pingRequestList = [];
+  pingRequestList[0] = 'ping_request';
+  pingRequestList[1] = lastPingRequestTime;
+  pingRequestList[2] = id;
+  send(pingRequestList);
+  delay(endTableCheck, 2000);
+}
+
+function ping() {
+  time = Math.floor(Date.now()/1000)
+  pingList = [];
+  pingList[0] = 'ping';
+  pingList[1] = time;
+  pingList[2] = id;
+  send(pingList);
+}
+
+// initial call, or just call refresh directly
+//setTimeout(ping, 5000);
 
 function getCard(){
   //var randomnumber = Math.floor(Math.random()*deck.length);
@@ -43,15 +96,13 @@ function flop(){
   card2 = getCard();
   card3 = getCard();
   cards = [card1,card2,card3]
-  debug.change('flop a='+card1+' b='+card2+' c='+card3);
-//  send('flop', cards);
+//  debug.change('flop a='+card1+' b='+card2+' c='+card3);
   list = [];
   list[0] = 'flop'
   list[1] = card1;
   list[2] = card2;
   list[3] = card3;
   send(list);
-//  send('flop', card1, card2, card3);
   renderFlop(card1, card2, card3);
 }
 
@@ -61,12 +112,8 @@ function get(list) {
   card1 = list[1];
   card2 = list[2];
   card3 = list[3];
-  console.log('in get '+action+' id='+id+' card1='+card1+' card2='+card2+' card3='+card3)
-  debug.change('in get '+action+' id='+id+' card1='+card1+' card2='+card2+' card3='+card3)
- 
-//  debug.change(action+' a='+card1+' b='+card2+' c='+card3)
-//  debug.change('id='+id+' card2='+card2+' card3='+card3)
- // debug.change('received '+action)
+//  console.log('in get '+action+' id='+id+' card1='+card1+' card2='+card2+' card3='+card3)
+//  debug.change('in get '+action+' id='+id+' card1='+card1+' card2='+card2+' card3='+card3)
   if(action =='flop'){
     renderFlop(card1, card2, card3)
   } else if(action =='turn'){
@@ -77,6 +124,41 @@ function get(list) {
     reset();
   } else if(action =='joined'){
     debug.change(card1+' just joined')
+  } else if(action == 'ping'){
+    someId = list[2];
+    console.log('got ping '+someId);
+    if(!players.includes(someId)){
+      players.push(someId);
+      updatePlayersLabel();
+    }
+  } else if(action =='ping_request'){
+  //  ping();
+  } else if(action =='deal'){
+    renderDeal(card1, card2);
+  } else if(action =='player_list'){
+      players.clear();
+      for (i = 1; i < list.length; i++) {
+ 		players.push(list[i]);
+      }
+  } else if(action =='join'){
+    someId = list[2];
+    if(!players.includes(someId)){
+      players.push(someId);
+      updatePlayersLabel();
+      console.log(someId+' joined');
+    }
+//    ping();//all players will be known to all browsers
+  } else if(action =='quit'){
+    someId = list[2];
+    temp = players[players.length]
+    for (i = 1; i < list.length; i++) {
+      if(players[i] == someId){
+        players[i] = players[players.length];
+        players.pop();
+        updatePlayersLabel();
+        console.log(someId+' quit');
+      }
+    }
   }
 }
 
@@ -127,7 +209,6 @@ function river(){
 
 function shuffleDeck(array) {
   var i = 0, j = 0, temp = null
-
   for (i = array.length - 1; i > 0; i -= 1) {
     j = Math.floor(Math.random() * (i + 1))
     temp = array[i]
@@ -146,15 +227,17 @@ function shuffle(){
 }
 
 function reset(){
+//  tableCheck()
   nextCard = 0;
-  f.change('flop');
-  f.tap = flop;
+  f.change('deal');
+  f.tap = preflop;
   c1.change(cardBack);
   c2.change(cardBack);
   c3.change(cardBack);
   c4.change(cardBack);
   c5.change(cardBack);
-  //createDeck();
+  c6.change(cardBack);
+  c7.change(cardBack);
 }
 
 function createDeck(){
@@ -194,7 +277,36 @@ function board(){
   c3 = stamp(cardBack,370,flopy,cardHeight);
   c4 = stamp(cardBack,550,flopy,cardHeight);
   c5 = stamp(cardBack,700,flopy,cardHeight);
+  
+  c6 = stamp(cardBack,100,550,cardHeight);
+  c7 = stamp(cardBack,255,550,cardHeight);
   f = text('flop',75,flopy+200,50);
   createDeck();
+  shuffleDeck(deck);
 }
 
+w = stamp('watermelon',670,700)
+w.tap = joinQuit;
+join = text('join',650,800)
+quit = text('quit',650,800)
+quit.hide()
+
+function joinQuit() {
+  messageList = [];
+  messageList[1] = Math.floor(Date.now()/1000);
+  messageList[2] = id;
+  if (quit.hidden) {
+    messageList[0] = 'join';
+    quit.show()
+    join.hide()
+    w.change('cup');
+  } else {
+    messageList[0] = 'quit';
+    quit.hide()
+    join.show()
+    w.change('watermelon');
+  }
+  //  console.log('sending '+messageList);
+  send(messageList);
+
+}
