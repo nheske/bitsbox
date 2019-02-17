@@ -15,6 +15,44 @@ reset();
 //var id = window.navigator.userAgent.replace(/\D+/g, '').substring(0,3);
 debug.change(id);
 
+seconds = 600;
+words = text('GO', 100, 100, 100, 'black');
+clock = stamp('clock',600,50, 50);
+clock.tap = resetTimer;
+pause = false;
+pauseButton = stamp('pawn', 700, 50, 80);
+pauseButton.tap = pauseClock;
+
+function pauseClock(){
+  pause = !pause;
+  pauseList = ['pause', pause];
+  send(pauseList);
+}
+
+function resetTimer(){
+  seconds = 600;
+  console.log('seconds='+seconds);
+  pingList = [];
+  pingList[0] = 'resetTimer';
+  send(pingList);
+  pause = false;
+}
+
+function loop(){
+  if(!pause){
+    if(seconds > 0) {
+     seconds = seconds -0.05;
+     minutes = Math.floor(seconds/60);
+     var displaySeconds = Math.round(seconds % 60);
+     words.change(minutes+':'+displaySeconds);
+   } else{
+     words.change('END');
+     sound('alert',50,1);
+     seconds = 600;
+   }
+  }
+}
+
 function preflop(){
   for (i = 0; i < players.length; i++) {
     someId = players[i];
@@ -114,15 +152,15 @@ function get(list) {
   card3 = list[3];
 //  console.log('in get '+action+' id='+id+' card1='+card1+' card2='+card2+' card3='+card3)
 //  debug.change('in get '+action+' id='+id+' card1='+card1+' card2='+card2+' card3='+card3)
-  if(action =='flop'){
+  if(action == 'flop'){
     renderFlop(card1, card2, card3)
-  } else if(action =='turn'){
+  } else if(action == 'turn'){
     renderTurn(card1)
-  } else if(action =='river'){
+  } else if(action == 'river'){
     renderRiver(card1)
-  } else if(action =='shuffle'){
+  } else if(action == 'shuffle'){
     reset();
-  } else if(action =='joined'){
+  } else if(action == 'joined'){
     debug.change(card1+' just joined')
   } else if(action == 'ping'){
     someId = list[2];
@@ -131,16 +169,16 @@ function get(list) {
       players.push(someId);
       updatePlayersLabel();
     }
-  } else if(action =='ping_request'){
+  } else if(action == 'ping_request'){
   //  ping();
-  } else if(action =='deal'){
+  } else if(action == 'deal'){
     renderDeal(card1, card2);
-  } else if(action =='player_list'){
+  } else if(action == 'player_list'){
       players.clear();
       for (i = 1; i < list.length; i++) {
  		players.push(list[i]);
       }
-  } else if(action =='join'){
+  } else if(action == 'join'){
     someId = list[2];
     if(!players.includes(someId)){
       players.push(someId);
@@ -148,7 +186,7 @@ function get(list) {
       console.log(someId+' joined');
     }
 //    ping();//all players will be known to all browsers
-  } else if(action =='quit'){
+  } else if(action == 'quit'){
     someId = list[2];
     temp = players[players.length]
     for (i = 1; i < list.length; i++) {
@@ -159,6 +197,11 @@ function get(list) {
         console.log(someId+' quit');
       }
     }
+  } else if(action == 'resetTimer'){
+    seconds = 600;
+    pause = false;
+  } else if(action == 'pause'){
+    pause = list[1];
   }
 }
 
@@ -280,7 +323,9 @@ function board(){
   
   c6 = stamp(cardBack,100,550,cardHeight);
   c7 = stamp(cardBack,255,550,cardHeight);
-  f = text('flop',75,flopy+200,50);
+  f = text('flop',75,flopy+200,100);
+   shuff = stamp('@sam1', 700, 440, 200);
+  shuff.tap = shuffle;
   createDeck();
   shuffleDeck(deck);
 }
