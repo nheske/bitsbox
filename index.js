@@ -4,18 +4,17 @@ var suit = [];
 var rank = [];
 var players = [];
 var nextCard = 0;
+var seconds = 600;
 var isTableCheck = false;
 var lastPingRequestTime;
 var playersLabel = text('',100,1000,50)
 var self=Date.now().toString().substring(9,12);
 var debug = text(self,100,900);
 var message = text('',40, 800, 40);
-board();
-reset();
-
-var seconds = 600;
 var words = text('GO', 100, 100, 100, 'black');
 var isPaused = false;
+board();
+reset();
 
 function showCards(){
   send(['show', self, c6, c7]);
@@ -69,8 +68,6 @@ function preflop(){
       send(packets);
     }
   }
-  f.change('flop');
-  f.tap = flop;
 }
 
 function renderDeal(c1, c2){
@@ -121,13 +118,8 @@ function ping() {
   send(['ping',time,self]);
 }
 
-// initial call, or just call refresh directly
-//setTimeout(ping, 5000);
-
 function getCard(){
-  var someCard = deck[nextCard];
-  nextCard = nextCard + 1;
-  return someCard
+  return deck[nextCard++]
 }
 
 function get(input) {
@@ -153,6 +145,8 @@ function get(input) {
   } else if(action == 'deal'){
     if(input[1] == self){
       renderDeal(input[2], input[3]);
+      f.change('flop');
+  	  f.tap = flop;
     }
   } else if(action == 'player_list'){
       players.clear();
