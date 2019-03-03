@@ -19,6 +19,7 @@ var isPaused = false;
 
 function showCards(){
   send(['show', self, c6, c7]);
+  get(['show', self, c6, c7]);
 }
 
 function clearTable(){
@@ -29,6 +30,7 @@ function clearTable(){
 function pauseClock(){
   isPaused = !isPaused;
   send(['pause', isPaused]);
+  get(['pause', isPaused]);
 }
 
 function resetTimer(){
@@ -54,16 +56,14 @@ function loop(){
 function preflop(){
   for (var i = 0; i < players.length; i++) {
     var someId = players[i];
-    var card1 = getCard();
-  	var card2 = getCard();
     var packets = [];
-    packets[0] = 'deal'
-    packets[1] = card1;
-    packets[2] = card2;
-    console.log('dealing '+card1+','+card2);
+    packets[0] = 'deal';
+    packets[1] = someId;
+    packets[2] = getCard();
+    packets[3] = getCard();
+    console.log('dealing '+packets[2]+','+packets[3]);
     if(someId == self){
       console.log('my cards');
-//	  renderDeal(card1, card2);
       get(packets);
     } else{
       send(packets);
@@ -73,9 +73,9 @@ function preflop(){
   f.tap = flop;
 }
 
-function renderDeal(card1, card2){
-      c6.change(card1);
-      c7.change(card2);
+function renderDeal(c1, c2){
+      c6.change(c1);
+      c7.change(c2);
 }
 
 function removePlayer(player){
@@ -130,38 +130,18 @@ function getCard(){
   return someCard
 }
 
-function flop(){
-//  var card1 = getCard();
-//  card2 = getCard();
-//  card3 = getCard();
-//  cards = [card1,card2,card3]
-  var packets = [];
-  packets[0] = 'flop'
-  packets[1] = getCard();
-  packets[2] = getCard();
-  packets[3] = getCard();
-  send(packets);
-  get(packets);
-  //renderFlop(card1, card2, card3);
-}
-
 function get(input) {
   action = input[0];
-  arg1 = input[1];
-  card2 = input[2];
-  card3 = input[3];
- // console.log('in get '+action+' id='+id+' card1='+card1+' card2='+card2+' card3='+card3)
-//  debug.change('in get '+action+' id='+id+' card1='+card1+' card2='+card2+' card3='+card3)
   if(action == 'flop'){
-    renderFlop(arg1, card2, card3)
+    renderFlop(input[1], input[2], input[3])
   } else if(action == 'turn'){
-    renderTurn(arg1)
+    renderTurn(input[1])
   } else if(action == 'river'){
-    renderRiver(arg1)
+    renderRiver(input[1])
   } else if(action == 'shuffle'){
     reset();
   } else if(action == 'joined'){
-    debug.change(arg1+' just joined')
+    debug.change(input[1]+' just joined')
   } else if(action == 'ping'){
     someId = input[2];
     console.log('got ping '+someId);
@@ -171,7 +151,9 @@ function get(input) {
   } else if(action == 'ping_request'){
   //  ping();
   } else if(action == 'deal'){
-    renderDeal(arg1, card2);
+    if(input[1] == self){
+      renderDeal(input[2], input[3]);
+    }
   } else if(action == 'player_list'){
       players.clear();
       for (i = 1; i < input.length; i++) {
@@ -190,7 +172,7 @@ function get(input) {
     seconds = 600;
     isPaused = false;
   } else if(action == 'pause'){
-    isPaused = arg1;
+    isPaused = input[1];
   } else if(action == 'clear'){
     players = [];
     playersLabel.change('clear');
@@ -198,12 +180,8 @@ function get(input) {
     join.show()
     watermelon.change('watermelon');
   } else if(action == 'show'){
-    message.change(arg1+' has '+input[2]+','+input[3]);
+    message.change(input[1]+' has '+input[2]+','+input[3]);
   }
-}
-
-function flopButton(){
-  flop()
 }
 
 function renderFlop(a, b, c){
@@ -214,16 +192,26 @@ function renderFlop(a, b, c){
   f.tap = turn;
 }
 
-function renderTurn(a){
-  c4.change(a);
+function renderTurn(someCard){
+  c4.change(someCard);
   f.change('river');
   f.tap = river;
 }
 
-function renderRiver(a){
-  c5.change(a);
+function renderRiver(someCard){
+  c5.change(someCard);
   f.change('shuffle');
   f.tap = shuffle;
+}
+
+function flop(){
+  var packets = [];
+  packets[0] = 'flop'
+  packets[1] = getCard();
+  packets[2] = getCard();
+  packets[3] = getCard();
+  send(packets);
+  get(packets);
 }
 
 function turn(){
@@ -232,8 +220,7 @@ function turn(){
   list[0] = 'turn';
   list[1] = card4;
   delay(send(list), 1000);
-//  delay(send('turn', card4, '', ''), 1000);
-  renderTurn(card4);
+  get(list);
 }
 
 function river(){
@@ -242,8 +229,7 @@ function river(){
   list[0] = 'river';
   list[1] = card5;
   delay(send(list), 1000);
-//  delay(send('river', card5, '', ''), 1000);
-  renderRiver(card5);
+  get(list);
 }
  
 
